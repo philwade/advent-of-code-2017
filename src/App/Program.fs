@@ -51,25 +51,41 @@ type Axis =
 let diffLookup (x, y) =
     (abs x) + (abs y)
 
-//let addValues acc index axis (valstart, valend) (coordstart, coordend) =
-    //let pairs = List.zip [valstart..valend] [coordstart..coordend]
-    //List.fold (fun (value, coord) acc2 = 
-                //match axis with
-                //| X ->
-                    //acc2.add value 
+let addValues acc axis valuelist coordlist axisconst =
+    let pairs = List.zip valuelist coordlist
+    match axis with
+        | X ->
+            List.fold (fun x (value, coord) -> Map.add value (coord, axisconst) x) acc pairs
+        | Y ->
+            List.fold (fun x (value, coord) -> Map.add value (axisconst, coord) x) acc pairs
 
 let daythreeval input =
     let (init:Map<int,(int * int)>) = Map.empty.Add(1, (0, 0))
-    let rec daythreehelper acc (direction:Direction) length index =
+    let rec daythreehelper acc (direction:Direction) lastindex lastlength =
         if Map.exists (fun k _ -> k = input) acc then
             Map.find input acc
         else
-           // match direction with
-            //| Start ->
-             //   let (newAcc, newIndex) = addValues acc
-              //  daythreehelper newAcc North length newIndex
-            (0, 0)
-    let coord = daythreehelper init Start 2 2
+            let (lastx, lasty) = Map.find lastindex acc
+            match direction with
+                | Start ->
+                    let newAcc = addValues acc X [(lastindex + 1)] [(lastx + 1)] lasty
+                    daythreehelper newAcc North (lastindex + 1) lastlength
+                | North ->
+                    let newlen = lastlength + 1
+                    let newAcc = addValues acc Y [(lastindex + 1)..(lastindex + newlen)] [(lasty + 1)..(lasty + newlen)] lastx
+                    daythreehelper newAcc West (lastindex + newlen) newlen
+                | West ->
+                    let newlen = lastlength + 1
+                    let newAcc = addValues acc X [(lastindex + 1)..(lastindex + newlen)] (List.rev [(lastx - newlen)..(lastx - 1)]) lasty
+                    daythreehelper newAcc South (lastindex + newlen) newlen
+                | South ->
+                    let newAcc = addValues acc Y [(lastindex + 1)..(lastindex + lastlength)] (List.rev [(lasty - lastlength)..(lasty - 1)]) lastx
+                    daythreehelper newAcc East (lastindex + lastlength) lastlength
+                | East ->
+                    let newAcc = addValues acc X [(lastindex + 1)..(lastindex + lastlength)] [(lastx + 1)..(lastx + lastlength)] lasty
+                    daythreehelper newAcc Start (lastindex + lastlength) lastlength
+    let coord = daythreehelper init Start 1 0
+    printfn "found %O for input %i" coord input
     diffLookup coord
 
 let daythree () =
@@ -79,9 +95,10 @@ let daythree () =
     let test4 = 1024
     printfn "day 3 tests"
     printfn "input one passing: %b" (0 = (daythreeval test1))
-    printfn "input two passing: %b" (12 = (daythreeval test2))
-    printfn "input three passing: %b" (23 = (daythreeval test3))
-    printfn "input four passing: %b" (1024 = (daythreeval test4))
+    printfn "input two passing: %b" (3 = (daythreeval test2))
+    printfn "input three passing: %b" (2 = (daythreeval test3))
+    printfn "input four passing: %b" (31 = (daythreeval test4))
+    printfn "part one output: %i" (daythreeval 277678)
 
 let rec dayonesum numbers =
     let origHead = List.head numbers
@@ -137,5 +154,5 @@ let dayone () =
 
 [<EntryPoint>]
 let main argv =
-    dayfive()
+    daythree()
     0 // return an integer exit code
