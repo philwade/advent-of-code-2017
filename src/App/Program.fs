@@ -55,9 +55,71 @@ let addValues acc axis valuelist coordlist axisconst =
     let pairs = List.zip valuelist coordlist
     match axis with
         | X ->
-            List.fold (fun x (value, coord) -> Map.add value (coord, axisconst) x) acc pairs
+            List.fold (fun x (value, coord) ->
+                        Map.add value (coord, axisconst) x
+                        ) acc pairs
         | Y ->
-            List.fold (fun x (value, coord) -> Map.add value (axisconst, coord) x) acc pairs
+            List.fold (fun x (value, coord) ->
+                        Map.add value (axisconst, coord) x
+                        ) acc pairs
+
+let addValues2 acc axis valuelist coordlist axisconst =
+    let pairs = List.zip valuelist coordlist
+    let neighbors x y =
+        let z = List.map (fun pair -> Map.tryFind pair acc) [(x + 1, y); (x + 1, y + 1); (x, y + 1); (x - 1, y + 1); (x - 1, y); (x - 1, y - 1); (x, y - 1); (x + 1, y - 1)]
+        printfn "%O" z
+        List.fold (fun inacc y ->
+            match y with
+            | None -> inacc
+            | Some a -> inacc + a
+          ) 0 z
+    match axis with
+        | X ->
+            List.fold (fun x (value, coord) ->
+                        Map.add (coord, axisconst) (neighbors coord axisconst) x
+                        ) acc pairs
+        | Y ->
+            List.fold (fun x (value, coord) ->
+                        Map.add (axisconst, coord) (neighbors axisconst coord) x
+                        ) acc pairs
+
+let daythreeval2 input =
+    let (init:Map<int,(int * int)>) = Map.empty.Add(1, (0, 0))
+    let relvals = Map.empty.Add((0, 0), 1)
+    let rec daythreehelper acc (direction:Direction) lastindex lastlength rel =
+        let ((a, b), check) = List.head (Map.toList rel |> List.rev)
+        printfn "%O" (Map.toList rel)
+        if check > input then
+            ((a, b), check)
+        else
+            if Map.exists (fun k _ -> k = input) acc then
+                ((1, 1), 10)
+            else
+                let (lastx, lasty) = Map.find lastindex acc
+                match direction with
+                    | Start ->
+                        let newAcc = addValues acc X [(lastindex + 1)] [(lastx + 1)] lasty
+                        let newRel = addValues2 rel X [(lastindex + 1)] [(lastx + 1)] lasty
+                        daythreehelper newAcc North (lastindex + 1) lastlength newRel
+                    | North ->
+                        let newlen = lastlength + 1
+                        let newAcc = addValues acc Y [(lastindex + 1)..(lastindex + newlen)] [(lasty + 1)..(lasty + newlen)] lastx
+                        let newRel = addValues2 rel Y [(lastindex + 1)..(lastindex + newlen)] [(lasty + 1)..(lasty + newlen)] lastx
+                        daythreehelper newAcc West (lastindex + newlen) newlen newRel
+                    | West ->
+                        let newlen = lastlength + 1
+                        let newAcc = addValues acc X [(lastindex + 1)..(lastindex + newlen)] (List.rev [(lastx - newlen)..(lastx - 1)]) lasty
+                        let newRel = addValues2 rel X [(lastindex + 1)..(lastindex + newlen)] (List.rev [(lastx - newlen)..(lastx - 1)]) lasty
+                        daythreehelper newAcc South (lastindex + newlen) newlen newRel
+                    | South ->
+                        let newAcc = addValues acc Y [(lastindex + 1)..(lastindex + lastlength)] (List.rev [(lasty - lastlength)..(lasty - 1)]) lastx
+                        let newRel = addValues2 rel Y [(lastindex + 1)..(lastindex + lastlength)] (List.rev [(lasty - lastlength)..(lasty - 1)]) lastx
+                        daythreehelper newAcc East (lastindex + lastlength) lastlength newRel
+                    | East ->
+                        let newAcc = addValues acc X [(lastindex + 1)..(lastindex + lastlength)] [(lastx + 1)..(lastx + lastlength)] lasty
+                        let newRel = addValues2 rel X [(lastindex + 1)..(lastindex + lastlength)] [(lastx + 1)..(lastx + lastlength)] lasty
+                        daythreehelper newAcc Start (lastindex + lastlength) lastlength newRel
+    daythreehelper init Start 1 0 relvals
 
 let daythreeval input =
     let (init:Map<int,(int * int)>) = Map.empty.Add(1, (0, 0))
@@ -97,8 +159,9 @@ let daythree () =
     printfn "input one passing: %b" (0 = (daythreeval test1))
     printfn "input two passing: %b" (3 = (daythreeval test2))
     printfn "input three passing: %b" (2 = (daythreeval test3))
-    printfn "input four passing: %b" (31 = (daythreeval test4))
-    printfn "part one output: %i" (daythreeval 277678)
+    //printfn "input four passing: %b" (31 = (daythreeval test4))
+    //printfn "part one output: %i" (daythreeval 277678)
+    printfn "part two output: %O" (daythreeval2 12)
 
 let rec dayonesum numbers =
     let origHead = List.head numbers
