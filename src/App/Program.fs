@@ -1,7 +1,7 @@
-﻿// Learn more about F# at http://fsharp.org
-
+﻿module Program
 open System
 open System.IO
+open DaySix
 
 
 let dayfivesteps input =
@@ -217,5 +217,5 @@ let dayone () =
 
 [<EntryPoint>]
 let main argv =
-    daythree()
+    daysix()
     0 // return an integer exit code
