@@ -27,20 +27,20 @@ let rec redistribute startkey todist arr =
 let daysixsteps input =
     let rec helper lastString visited cycles arr =
         //printfn "%O" visited
-        if Set.contains lastString visited then
-            cycles
+        if Map.containsKey lastString visited then
+            ((cycles - (Map.find lastString visited)), cycles)
         else
             let (_, startindex, max) = getMax arr
             Array.set arr startindex 0
             let (nextString, newArr) = redistribute startindex max arr
-            let newSet = Set.add lastString visited
-            helper nextString newSet (cycles + 1) newArr
-    helper "" Set.empty 0 input
+            let newMap = Map.add lastString cycles visited
+            helper nextString newMap (cycles + 1) newArr
+    helper "" (Map.empty.Add("-1", -1)) 0 input
 
 let daysix () =
     let testin = [|0; 2; 7; 0;|]
     let actual = File.ReadAllLines("day6in") |> Array.map int
-    printfn "%A" actual
     printfn "day 6 tests"
-    printfn "input one passing: %b" (5 = (daysixsteps testin))
-    printfn "input value: %i" (daysixsteps actual)
+    printfn "input one passing: %b" ((4, 5) = (daysixsteps testin))
+    printfn "input value: %O" (daysixsteps actual)
+    //printfn "input value: %O" (daysixsteps actual)
