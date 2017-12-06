@@ -65,31 +65,32 @@ let addValues acc axis valuelist coordlist axisconst =
 
 let addValues2 acc axis valuelist coordlist axisconst =
     let pairs = List.zip valuelist coordlist
-    let neighbors x y =
-        let z = List.map (fun pair -> Map.tryFind pair acc) [(x + 1, y); (x + 1, y + 1); (x, y + 1); (x - 1, y + 1); (x - 1, y); (x - 1, y - 1); (x, y - 1); (x + 1, y - 1)]
-        printfn "%O" z
+    let neighbors x y a =
+        let z = List.map (fun pair -> Map.tryFind pair a) [(x + 1, y); (x + 1, y + 1); (x, y + 1); (x - 1, y + 1); (x - 1, y); (x - 1, y - 1); (x, y - 1); (x + 1, y - 1)]
         List.fold (fun inacc y ->
-            match y with
-            | None -> inacc
-            | Some a -> inacc + a
-          ) 0 z
+                                match y with
+                                | None -> inacc
+                                | Some a -> inacc + a
+                              ) 0 z
     match axis with
         | X ->
             List.fold (fun x (value, coord) ->
-                        Map.add (coord, axisconst) (neighbors coord axisconst) x
+                        //printfn "%i, (%i, %i)" value coord axisconst
+                        Map.add (coord, axisconst) (neighbors coord axisconst x) x
                         ) acc pairs
         | Y ->
             List.fold (fun x (value, coord) ->
-                        Map.add (axisconst, coord) (neighbors axisconst coord) x
+                        //printfn "%i, (%i, %i)" value coord axisconst
+                        Map.add (axisconst, coord) (neighbors axisconst coord x) x
                         ) acc pairs
 
 let daythreeval2 input =
     let (init:Map<int,(int * int)>) = Map.empty.Add(1, (0, 0))
     let relvals = Map.empty.Add((0, 0), 1)
     let rec daythreehelper acc (direction:Direction) lastindex lastlength rel =
-        let ((a, b), check) = List.head (Map.toList rel |> List.rev)
-        printfn "%O" (Map.toList rel)
+        let ((a, b), check) = List.head (Map.toList rel |> List.sortBy (fun (_, i) -> i) |> List.rev)
         if check > input then
+            printfn "%A" (Map.toList rel |> List.sortBy (fun (_, i) -> i))
             ((a, b), check)
         else
             if Map.exists (fun k _ -> k = input) acc then
@@ -161,7 +162,7 @@ let daythree () =
     printfn "input three passing: %b" (2 = (daythreeval test3))
     //printfn "input four passing: %b" (31 = (daythreeval test4))
     //printfn "part one output: %i" (daythreeval 277678)
-    printfn "part two output: %O" (daythreeval2 12)
+    printfn "part two output: %O" (daythreeval2 277678)
 
 let rec dayonesum numbers =
     let origHead = List.head numbers
@@ -217,5 +218,5 @@ let dayone () =
 
 [<EntryPoint>]
 let main argv =
-    daysix()
+    daythree()
     0 // return an integer exit code
