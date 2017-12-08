@@ -2,7 +2,8 @@
 open System
 open System.IO
 open DaySix
-
+open DaySeven
+open DayEight
 
 let dayfivesteps input =
     let rec helper steps index newin =
@@ -218,5 +219,5 @@ let dayone () =
 
 [<EntryPoint>]
 let main argv =
-    daythree()
+    dayeight()
     0 // return an integer exit code
