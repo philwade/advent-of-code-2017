@@ -9,5 +9,5 @@ open DayFive
 
 [<EntryPoint>]
 let main argv =
-    dayeight()
+    dayseven()
     0 // return an integer exit code

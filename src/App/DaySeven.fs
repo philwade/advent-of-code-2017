@@ -76,6 +76,22 @@ let extract (elem:string) =
                  |> int
     (k, weight)
 
+let alleven (values:int list) =
+    let init = List.head values
+    List.fold (fun _ v -> init = v) true values
+
+let rec nodeweight (start:string) (tree:Map<string, Node>) =
+    let node = Map.find start tree
+    match node.Children with
+    | None -> node.Weight
+    | Some children ->
+        let childrenweight = List.map (fun child -> nodeweight child tree) children
+        if alleven childrenweight |> not then
+            let culprits = List.zip children childrenweight
+            printfn "%O" culprits
+            // from here I just did a little bit of hand math!
+        node.Weight + (List.sum childrenweight)
+
 let weightchange (input: string list) =
     let kvpairs = input
                 |> pairs
@@ -85,13 +101,13 @@ let weightchange (input: string list) =
                         let children = parsechildren rawchildren
                         Map.add key { Weight = weight; Name = key; Children = children }  acc
                      ) Map.empty kvpairs
-    tree
+    nodeweight "xegshds" tree
 
 let dayseven() =
     let testin = File.ReadLines("day7test") |> Seq.toList
     let actual = File.ReadLines("day7input") |> Seq.toList
     printfn "day seven tests"
     printfn "test input passing: %b" ("tknk" = (bottom testin))
-    printfn "%O" (weightchange testin)
+    printfn "%O" (weightchange actual)
     //printfn "test input two passing: %b" (40 = (weightchange testin))
     //printfn "part one output: %s" (bottom actual)
